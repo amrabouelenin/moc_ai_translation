@@ -1,0 +1,13 @@
+{
+  "texts": [
+    "The server is down",
+    "Please restart the application",
+    "Database connection failed",
+    "Authentication required",
+    "Invalid input format",
+    "The authentication service is down",
+    "The authentication service is down",
+    "The authentication service is down"
+  ],
+  "embeddings": []
+}

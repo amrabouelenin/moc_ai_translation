@@ -1,0 +1,122 @@
+{
+  "health": {
+    "status": "✅ Success",
+    "data": {
+      "status": "healthy",
+      "version": "1.0.0",
+      "models_loaded": true,
+      "database_connected": true
+    }
+  },
+  "stats": {
+    "status": "✅ Success",
+    "data": {
+      "glossary": {
+        "total_terms": 15,
+        "languages": [
+          "fr"
+        ]
+      },
+      "memory": {
+        "total_entries": 7,
+        "index_size": 7
+      },
+      "llm": {
+        "provider": "azure",
+        "model": "gpt-4",
+        "status": "connected"
+      }
+    }
+  },
+  "glossary": {
+    "status": "✅ Success",
+    "data": {
+      "text": "The cloud server and database connection failed",
+      "target_language": "fr",
+      "matches": [
+        {
+          "term": "cloud server",
+          "translation": "serveur cloud",
+          "confidence": 1.0
+        },
+        {
+          "term": "database",
+          "translation": "base de données",
+          "confidence": 1.0
+        }
+      ],
+      "terms_found": [
+        "cloud server",
+        "database"
+      ]
+    }
+  },
+  "memory": {
+    "status": "✅ Success",
+    "data": {
+      "text": "The server is down",
+      "target_language": "fr",
+      "matches": [
+        {
+          "source_text": "The server is down",
+          "target_text": "Le serveur est hors service",
+          "similarity_score": 1.0,
+          "confidence": 0.95
+        }
+      ],
+      "total_matches": 1,
+      "exact_matches": 1,
+      "semantic_matches": 0
+    }
+  },
+  "mcp": {
+    "status": "✅ Success",
+    "data": {
+      "text": "The cloud server failed",
+      "target_language": "fr",
+      "glossary_matches": 1,
+      "memory_matches": 0,
+      "prompt_preview": "You are a professional translator specializing in technical and business content.\nTranslate the following text from en to fr:\n\n=== GLOSSARY TERMS ===\nTerm: cloud server\nTranslation: serveur cloud\nNotes: Infrastructure informatique\n\n=== INSTRUCTIONS ===\n1. Use the exact glossary terms provided above\n2. Follow the style and tone from the translation memory examples\n3. Maintain technical accuracy\n4. Provide only the translation, no additional text\n\n=== SOURCE TEXT ===\nThe cloud server failed\n\n=== T...",
+      "prompt_length": 514
+    }
+  },
+  "translation": {
+    "status": "✅ Success",
+    "data": {
+      "translation": "Le serveur cloud n'a pas réussi à se connecter à la base de données",
+      "source_text": "The cloud server failed to connect to the database",
+      "target_language": "fr",
+      "glossary_matches": [
+        {
+          "term": "cloud server",
+          "translation": "serveur cloud",
+          "confidence": 1.0,
+          "notes": "Infrastructure informatique"
+        },
+        {
+          "term": "database",
+          "translation": "base de données",
+          "confidence": 1.0,
+          "notes": "Système de gestion de données"
+        }
+      ],
+      "memory_matches": [
+        {
+          "source_text": "Database connection failed",
+          "target_text": "La connexion à la base de données a échoué",
+          "similarity_score": 0.7189610004425049,
+          "confidence": 0.98
+        }
+      ],
+      "confidence": 0.9437922000885011,
+      "model_used": "azure",
+      "processing_time": 0.48081016540527344
+    }
+  },
+  "feedback": {
+    "status": "✅ Success",
+    "data": {
+      "message": "Feedback received successfully"
+    }
+  }
+}

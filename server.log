@@ -1,0 +1,20 @@
+INFO:sentence_transformers.SentenceTransformer:Use pytorch device_name: cpu
+INFO:sentence_transformers.SentenceTransformer:Load pretrained SentenceTransformer: all-MiniLM-L6-v2
+/home/amro/moc_ai_translation/src/api/main.py:35: DeprecationWarning: 
+        on_event is deprecated, use lifespan event handlers instead.
+
+        Read more about it in the
+        [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+        
+  @app.on_event("startup")
+INFO:     Started server process [1452133]
+INFO:     Waiting for application startup.
+INFO:__main__:🚀 Starting AI Translation System...
+INFO:__main__:📡 Server: http://0.0.0.0:8000
+INFO:__main__:🔧 LLM Provider: Azure OpenAI
+INFO:__main__:📊 Database: sqlite:///./translation.db
+INFO:__main__:📚 Vector DB: ./data/vector_index.faiss
+INFO:     Application startup complete.
+ERROR:    [Errno 98] error while attempting to bind on address ('0.0.0.0', 8000): address already in use
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
