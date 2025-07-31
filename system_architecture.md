@@ -1,6 +1,4 @@
 ```mermaid
-title AI Translation System Architecture
-
 actor User
 
 subgraph "API Layer"
@@ -23,17 +21,17 @@ subgraph "Data Storage"
   GlossaryDB["Glossary Database"]
 end
 
-User --> FastAPI : Submit_Translation_Request
-FastAPI --> Orchestrator : Forward_Request
-Orchestrator --> Glossary : Check_Glossary_Terms
-Glossary --> GlossaryDB : Query_Glossary
-GlossaryDB --> Glossary : Return_Matches
-Orchestrator --> Memory : Search_Translation_Memory
-Memory --> FAISS : Query_Semantic_Index
-FAISS --> Memory : Return_Matches
-Orchestrator --> Prompt : Construct_MCP_Style_Prompt
-Prompt --> LLM : Query_LLM_for_Translation
-LLM --> Orchestrator : Return_Translation
-Orchestrator --> FastAPI : Compile_Response
-FastAPI --> User : Return_Translated_Text
+User --> FastAPI : Submit Translation Request
+FastAPI --> Orchestrator : Forward Request
+Orchestrator --> Glossary : Check Glossary Terms
+Glossary --> GlossaryDB : Query Glossary
+GlossaryDB --> Glossary : Return Matches
+Orchestrator --> Memory : Search Translation Memory
+Memory --> FAISS : Query Semantic Index
+FAISS --> Memory : Return Matches
+Orchestrator --> Prompt : Construct Prompt
+Prompt --> LLM : Query LLM
+LLM --> Orchestrator : Return Translation
+Orchestrator --> FastAPI : Compile Response
+FastAPI --> User : Return Translation
 ```
