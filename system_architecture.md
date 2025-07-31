@@ -1,37 +1,33 @@
 ```mermaid
-actor User
+graph TD
+    User[User]
 
-subgraph "API Layer"
-  FastAPI["FastAPI Server"]
-end
+    API[FastAPI Server]
+    Core[Core Logic]
+    LLM[Azure OpenAI GPT]
+    Storage[Data Storage]
 
-subgraph "Core Logic"
-  Orchestrator["Orchestrator (Translator)"]
-  Glossary["Glossary Manager"]
-  Memory["Translation Memory"]
-  Prompt["MCP-Style Prompt"]
-end
+    Orchestrator[Orchestrator Translator]
+    Glossary[Glossary Manager]
+    Memory[Translation Memory]
+    Prompt[MCP-Style Prompt]
 
-subgraph "LLM Interaction"
-  LLM["Azure OpenAI GPT"]
-end
+    FAISS[FAISS Index]
+    GlossaryDB[Glossary Database]
 
-subgraph "Data Storage"
-  FAISS["FAISS Index"]
-  GlossaryDB["Glossary Database"]
-end
+    User --> API
+    API --> Orchestrator
+    Orchestrator --> Glossary
+    Glossary --> GlossaryDB
+    GlossaryDB --> Glossary
+    Orchestrator --> Memory
+    Memory --> FAISS
+    FAISS --> Memory
+    Orchestrator --> Prompt
+    Prompt --> LLM
+    LLM --> Orchestrator
+    Orchestrator --> API
+    API --> User
 
-User --> FastAPI : Submit Translation Request
-FastAPI --> Orchestrator : Forward Request
-Orchestrator --> Glossary : Check Glossary Terms
-Glossary --> GlossaryDB : Query Glossary
-GlossaryDB --> Glossary : Return Matches
-Orchestrator --> Memory : Search Translation Memory
-Memory --> FAISS : Query Semantic Index
-FAISS --> Memory : Return Matches
-Orchestrator --> Prompt : Construct Prompt
-Prompt --> LLM : Query LLM
-LLM --> Orchestrator : Return Translation
-Orchestrator --> FastAPI : Compile Response
-FastAPI --> User : Return Translation
+    Core --> Storage 
 ```
