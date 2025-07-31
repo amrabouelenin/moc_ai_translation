@@ -301,6 +301,24 @@ The system supports multiple LLM providers:
 - Advanced confidence scoring
 - Batch translation support
 - Webhook notifications
+- Support for large file translations
+
+## 📂 Submodules Documentation
+
+### Core Logic
+- [Core Translation Logic](src/core/README.md): Explains the orchestration of glossary checks, translation memory searches, and LLM queries.
+
+### Glossary Management
+- [Glossary Management](src/glossary/README.md): Details the management of glossary terms and their integration into the translation process.
+
+### Memory Management
+- [Memory Management](src/memory/README.md): Describes the translation memory, FAISS indexing, and RAG search workflows.
+
+### LLM Client
+- [LLM Client](src/llm/README.md): Covers the interaction with the LLM, including prompt construction and translation requests.
+
+### Data
+- [Data Directory](data/README.md): Provides details about the FAISS index and metadata used for semantic search.
 
 ## 🛠️ Detailed Sequential Steps for Translation Workflow
 
