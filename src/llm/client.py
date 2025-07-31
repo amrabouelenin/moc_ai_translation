@@ -189,7 +189,11 @@ class AzureOpenAIClient(LLMClient):
         prompt_parts.append("- Follow the style shown in the translation memory examples")
         prompt_parts.append(f"\nText to translate: {text}")
         
-        return "\n".join(prompt_parts)
+        final_prompt = "\n".join(prompt_parts)
+        print(f"Constructed prompt: {final_prompt}.")  # Log first 100 characters for debugging
+        print(f"Full prompt length: {len(final_prompt)} characters")
+
+        return final_prompt
 
 
 class AnthropicClient(LLMClient):

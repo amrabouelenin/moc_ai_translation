@@ -6,6 +6,7 @@ update_topics_bucket_old.py
 site
 upload_training_materials.py
 .vscode/settings.json
+test_results.json
 # Environment variables
 .env
 .env.*

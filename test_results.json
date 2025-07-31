@@ -18,8 +18,8 @@
         ]
       },
       "memory": {
-        "total_entries": 7,
-        "index_size": 7
+        "total_entries": 8,
+        "index_size": 8
       },
       "llm": {
         "provider": "azure",
@@ -110,7 +110,7 @@
       ],
       "confidence": 0.9437922000885011,
       "model_used": "azure",
-      "processing_time": 0.48081016540527344
+      "processing_time": 0.43005847930908203
     }
   },
   "feedback": {

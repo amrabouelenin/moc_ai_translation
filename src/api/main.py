@@ -51,7 +51,13 @@ async def root():
         "message": "AI Translation System is running",
         "docs": "/docs",
         "health": "/health",
-        "test": "/test"
+        "test": "/test",
+        "stats": "/stats",
+        "glossary_debug": "/debug/glossary",
+        "memory_debug": "/debug/memory",
+        "mcp_debug": "/debug/mcp",
+        "feedback": "/feedback",
+        "translate": "/translate"
     }
 
 

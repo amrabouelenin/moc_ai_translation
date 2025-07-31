@@ -14,6 +14,7 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY src/ ./src/
+COPY test_system.py .
 COPY run.py .
 
 # Create data directory
@@ -25,7 +26,7 @@ EXPOSE 8000
 # Set environment variables
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
-# read OPNEAI_API_KEY from environment variable
-ENV OPENAI_API_KEY=${OPENAI_API_KEY}
+#docker run --env-file .env  -p 8000:8000 ai-translation
+
 # Run the application
 CMD ["python3", "run.py"]

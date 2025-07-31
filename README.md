@@ -116,14 +116,14 @@ Submit user feedback and optionally add to translation memory.
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   FastAPI       │    │  Translation     │    │   Azure       │
-│   Server        │───▶│  Orchestrator    │───▶│  OpenAI       │
+│   FastAPI       │    │  Translation     │    │   Azure         │
+│   Server        │───▶│  Orchestrator    │───▶│  OpenAI         │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
          │                       │                       │
          │                       │                       │
     ┌────────┐            ┌─────────────┐          ┌─────────────┐
-    │Glossary│            │Translation  │          │   FAISS   │
-    │Manager │            │Memory       │          │   Index   │
+    │Glossary│            │Translation  │          │   FAISS     │
+    │Manager │            │Memory       │          │   Index     │
     └────────┘            └─────────────┘          └─────────────┘
 ```
 
