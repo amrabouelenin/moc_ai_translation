@@ -143,7 +143,7 @@ class AzureOpenAIClient(LLMClient):
             temperature=0.3,
             max_tokens=1000
         )
-        
+        print(f"Constructed prompt: {prompt}")
         return response.choices[0].message.content.strip()
     
     def _build_prompt(

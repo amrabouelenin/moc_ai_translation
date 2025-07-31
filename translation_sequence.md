@@ -14,14 +14,14 @@ sequenceDiagram
     API->>Translator: Forward request
     Translator->>GlossaryManager: Check glossary for terms
     GlossaryManager-->>Translator: Return glossary terms
-    Translator->>LLMClient: Query LLM for translation
-    LLMClient-->>Translator: Return translation
-    Translator->>VectorIndex: Search for similar translations
-    VectorIndex-->>Translator: Return similar translations
-    Translator->>TMManager: Retrieve from TM
-    TMManager-->>Translator: Return TM results
-    Translator->>RAGSearch: Perform RAG search
-    RAGSearch-->>Translator: Return RAG results
+    Translator->>VectorIndex: Search for high-confidence matches
+    VectorIndex-->>Translator: Return high-confidence matches
+    alt High-confidence match found
+        Translator-->>API: Skip LLM call, return high-confidence match
+    else No high-confidence match
+        Translator->>LLMClient: Query LLM for translation
+        LLMClient-->>Translator: Return translation
+    end
     Translator->>Database: Store translation result
     Database-->>API: Provide stored translation
     API-->>User: Return translated text

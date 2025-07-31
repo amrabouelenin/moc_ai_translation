@@ -9,7 +9,9 @@
     "The authentication service is down",
     "The authentication service is down",
     "The authentication service is down",
-    "Hello, how are you?"
+    "Hello, how are you?",
+    "Hello, how are you?",
+    "The authentication service is down"
   ],
   "embeddings": []
 }

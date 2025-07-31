@@ -52,20 +52,41 @@ class TranslationOrchestrator:
             logger.info(f"🧠 Memory matches found: {len(memory_result.matches)}")
         
         # Step 3: Get translation
+        translation = ""
         if self.llm_client:
-            try:
-                translation = await self.llm_client.translate(
-                    request.text,
-                    request.target_language,
-                    request.source_language,
-                    glossary_result.matches,
-                    memory_result.matches,
-                    request.domain
-                )
-                logger.info(f"✅ Translation completed: '{translation}'")
-            except Exception as e:
-                logger.error(f"❌ LLM translation failed: {e}")
-                translation = self._fallback_translate(request, memory_result)
+            if memory_result.matches:
+                best_match = max(memory_result.matches, key=lambda x: x.similarity_score)
+                if best_match.similarity_score > 0.8:
+                    translation = best_match.target_text
+                    logger.info(f"✅ Using high-confidence memory match: '{translation}'")
+                else:
+                    try:
+                        translation = await self.llm_client.translate(
+                            request.text,
+                            request.target_language,
+                            request.source_language,
+                            glossary_result.matches,
+                            memory_result.matches,
+                            request.domain
+                        )
+                        logger.info(f"✅ Translation completed via LLM: '{translation}'")
+                    except Exception as e:
+                        logger.error(f"❌ LLM translation failed: {e}")
+                        translation = self._fallback_translate(request, memory_result)
+            else:
+                try:
+                    translation = await self.llm_client.translate(
+                        request.text,
+                        request.target_language,
+                        request.source_language,
+                        glossary_result.matches,
+                        memory_result.matches,
+                        request.domain
+                    )
+                    logger.info(f"✅ Translation completed via LLM: '{translation}'")
+                except Exception as e:
+                    logger.error(f"❌ LLM translation failed: {e}")
+                    translation = self._fallback_translate(request, memory_result)
         else:
             # Fallback translation
             translation = self._fallback_translate(request, memory_result)

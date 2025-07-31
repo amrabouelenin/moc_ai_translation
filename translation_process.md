@@ -16,8 +16,9 @@ graph TD
     API -->|Forward request| Core
     Core -->|Process translation request| Translator
     Translator -->|Check glossary for terms| GlossaryManager
-    Translator -->|Query LLM for translation| LLMClient
-    Translator -->|Search for similar translations| VectorIndex
+    Translator -->|Search for high-confidence matches| VectorIndex
+    Translator -->|Skip LLM call if high-confidence match| Translator
+    Translator -->|Query LLM for translation if no high-confidence match| LLMClient
     Translator -->|Store translation result| Database
     Database -->|Provide stored translation| API
     API -->|Return translated text| User

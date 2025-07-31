@@ -132,7 +132,7 @@ class RAGSearch:
                         exact_matches += 1
                     else:
                         semantic_matches += 1
-        
+        print(f"Semantic matches found: {len(matches)}. Skipping LLM call.")
         return SearchResult(
             matches=matches,
             total_matches=len(matches),
