@@ -26,3 +26,37 @@ This directory contains components for managing translation memory and performin
 
 ## Key Updates
 - **Hybrid RAGSearch Logic**: High-confidence matches skip LLM calls, improving efficiency and reducing costs.
+
+## Detailed Explanation of RAG and FAISS
+
+### RAG (Retrieval-Augmented Generation)
+- **Purpose**: Enhances translation by retrieving relevant context from a knowledge base (translation memory) before generating a response.
+- **Workflow**:
+  1. Encode the input query using SentenceTransformer.
+  2. Normalize the embeddings for efficient similarity comparison.
+  3. Search the FAISS index to retrieve top-K similar entries.
+  4. Filter matches based on a similarity threshold.
+  5. Check the translation memory for exact matches.
+  6. Return the results to the translator.
+
+### FAISS (Facebook AI Similarity Search)
+- **Purpose**: Provides fast and scalable similarity search for dense vectors.
+- **Key Features**:
+  - Supports billions of vectors with efficient indexing.
+  - Uses clustering and quantization techniques for speed.
+  - Integrates seamlessly with Python for embedding-based search.
+
+### How It Works
+1. **Index Creation**:
+   - Embeddings from the translation memory are indexed using FAISS.
+   - The index is stored on disk for persistence.
+2. **Query Processing**:
+   - The input query is encoded into an embedding.
+   - The embedding is normalized and searched against the FAISS index.
+3. **Result Filtering**:
+   - Matches are filtered based on a similarity threshold to ensure relevance.
+
+### References
+- [FAISS Documentation](https://faiss.ai/)
+- [SentenceTransformers](https://www.sbert.net/)
+- [RAG: Retrieval-Augmented Generation](https://arxiv.org/abs/2005.11401)
