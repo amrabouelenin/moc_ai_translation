@@ -18,6 +18,8 @@ graph TD
     User --> API
     API --> Orchestrator
     Orchestrator --> Glossary
+    Glossary --> Orchestrator
+    Memory --> Orchestrator
     Glossary --> GlossaryDB
     GlossaryDB --> Glossary
     Orchestrator --> Memory
