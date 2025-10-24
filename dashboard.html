@@ -8,7 +8,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #1B7FBD;
             padding: 20px;
             color: #333;
         }
@@ -21,7 +21,7 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
         h1 {
-            color: #667eea;
+            color: #112F91;
             margin-bottom: 10px;
             font-size: 2.5em;
         }
@@ -37,7 +37,7 @@
             margin-bottom: 30px;
         }
         .card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #00C3BF;
             padding: 20px;
             border-radius: 10px;
             color: white;
@@ -50,7 +50,7 @@
             border-radius: 10px;
             padding: 20px;
             margin-bottom: 20px;
-            border-left: 5px solid #667eea;
+            border-left: 5px solid #1B7FBD;
         }
         .language-header {
             display: flex;
@@ -61,7 +61,7 @@
         .language-title {
             font-size: 1.5em;
             font-weight: bold;
-            color: #667eea;
+            color: #112F91;
         }
         .status-badge {
             padding: 8px 15px;
@@ -69,8 +69,8 @@
             font-weight: bold;
             font-size: 0.9em;
         }
-        .status-inprogress { background: #ffc107; color: #000; }
-        .status-notstarted { background: #dc3545; color: white; }
+        .status-inprogress { background: #FFBA07; color: #000; }
+        .status-notstarted { background: #FFD926; color: #000; }
         .status-na { background: #6c757d; color: white; }
         .progress-bar-container {
             margin: 10px 0;
@@ -90,7 +90,7 @@
         }
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+            background: #00C3BF;
             transition: width 0.3s ease;
             display: flex;
             align-items: center;
@@ -114,7 +114,7 @@
         .stat-value {
             font-size: 1.5em;
             font-weight: bold;
-            color: #667eea;
+            color: #1B7FBD;
         }
         .stat-label {
             color: #666;
@@ -145,7 +145,7 @@
             border: 1px solid #dee2e6;
         }
         .matrix-table th {
-            background: #667eea;
+            background: #112F91;
             color: white;
             font-weight: bold;
         }
@@ -153,6 +153,7 @@
             background: #f8f9fa;
         }
         .cell-complete { background: #d4edda !important; color: #155724; font-weight: bold; }
+        .cell-started { background: #fff3cd !important; color: #856404; font-weight: bold; }
         .cell-notstarted { background: #f8d7da !important; color: #721c24; font-weight: bold; }
         .cell-na { background: #e2e3e5 !important; color: #383d41; }
     </style>
@@ -168,16 +169,17 @@
                 <h3>6</h3>
                 <p>Total Languages</p>
             </div>
+                        <div class="card">
+                <h3>3</h3>
+                <p>Repos (GRIB2, BUFR4, CCT)</p>
+            </div>
             <div class="card">
-                <h3>450+</h3>
+                <h3>464</h3>
                 <p>Total Files (English)</p>
             </div>
+
             <div class="card">
-                <h3>352</h3>
-                <p>Files (Spanish)</p>
-            </div>
-            <div class="card">
-                <h3>1/6</h3>
+                <h3>1/5</h3>
                 <p>Languages Started</p>
             </div>
             <div class="card">
@@ -191,43 +193,79 @@
         </div>
 
         <!-- Main 5 Process Overview -->
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+        <div style="background: #112F91; padding: 25px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
             <h2 style="color: white; margin-bottom: 20px; text-align: center; font-size: 1.8em;">⚙️ MAIN 5 TRANSLATION PROCESSES</h2>
             <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px;">
                 <div style="background: rgba(255,255,255,0.95); padding: 20px; border-radius: 8px; text-align: center;">
                     <div style="font-size: 2.5em; margin-bottom: 10px;">📤</div>
-                    <h3 style="color: #667eea; margin-bottom: 10px; font-size: 1.1em;">1. Extraction</h3>
+                    <h3 style="color: #00C3BF; margin-bottom: 10px; font-size: 1.1em;">1. Extraction</h3>
                     <p style="color: #666; font-size: 0.9em; margin: 0;">Extract content from source files</p>
                 </div>
                 <div style="background: rgba(255,255,255,0.95); padding: 20px; border-radius: 8px; text-align: center;">
                     <div style="font-size: 2.5em; margin-bottom: 10px;">📝</div>
-                    <h3 style="color: #667eea; margin-bottom: 10px; font-size: 1.1em;">2. Formatting</h3>
+                    <h3 style="color: #00C3BF; margin-bottom: 10px; font-size: 1.1em;">2. Formatting</h3>
                     <p style="color: #666; font-size: 0.9em; margin: 0;">Standardize data format</p>
                 </div>
                 <div style="background: rgba(255,255,255,0.95); padding: 20px; border-radius: 8px; text-align: center;">
                     <div style="font-size: 2.5em; margin-bottom: 10px;">✅</div>
-                    <h3 style="color: #667eea; margin-bottom: 10px; font-size: 1.1em;">3. QC Status</h3>
+                    <h3 style="color: #00C3BF; margin-bottom: 10px; font-size: 1.1em;">3. QC Status</h3>
                     <p style="color: #666; font-size: 0.9em; margin: 0;">Quality control checks</p>
                 </div>
-                <div style="background: rgba(255,255,255,0.95); padding: 20px; border-radius: 8px; text-align: center; border: 3px solid #dc3545;">
+                <div style="background: rgba(255,255,255,0.95); padding: 20px; border-radius: 8px; text-align: center; border: 3px solid #FFBA07;">
                     <div style="font-size: 2.5em; margin-bottom: 10px;">🆔</div>
-                    <h3 style="color: #dc3545; margin-bottom: 10px; font-size: 1.1em;">4. ID Generation</h3>
-                    <p style="color: #dc3545; font-size: 0.9em; margin: 0; font-weight: bold;">⚠️ BLOCKED (0%)</p>
+                    <h3 style="color: #FFBA07; margin-bottom: 10px; font-size: 1.1em;">4. ID Generation</h3>
+                    <p style="color: #FFBA07; font-size: 0.9em; margin: 0; font-weight: bold;">⚠️ Started (5%)</p>
                 </div>
                 <div style="background: rgba(255,255,255,0.95); padding: 20px; border-radius: 8px; text-align: center;">
                     <div style="font-size: 2.5em; margin-bottom: 10px;">🤖</div>
-                    <h3 style="color: #667eea; margin-bottom: 10px; font-size: 1.1em;">5. AI Translation</h3>
+                    <h3 style="color: #1B7FBD; margin-bottom: 10px; font-size: 1.1em;">5. AI Translation</h3>
                     <p style="color: #666; font-size: 0.9em; margin: 0;">Automated translation</p>
                 </div>
             </div>
         </div>
 
         <!-- Process Flow Legend -->
-        <div style="background: #e7f3ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #0066cc;">
-            <h3 style="color: #0066cc; margin-bottom: 10px;">📋 Translation Process Flows by Language</h3>
+        <div style="background: #e7f3ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #1B7FBD;">
+            <h3 style="color: #112F91; margin-bottom: 10px;">📋 Translation Process Flows by Language</h3>
             <p style="margin: 5px 0;"><strong>🇬🇧 English (Source):</strong> ID Generation only</p>
             <p style="margin: 5px 0;"><strong>🇪🇸 Spanish / 🇫🇷 French / 🇷🇺 Russian:</strong> Extraction → Formatting → QC → ID Generation → AI Translation</p>
             <p style="margin: 5px 0;"><strong>🇨🇳 Chinese / 🇸🇦 Arabic:</strong> ID Generation → AI Translation (direct from English)</p>
+        </div>
+    <!-- English (Source Language) -->
+        <div class="language-section" style="border-left-color: #0066cc;">
+            <div class="language-header">
+                <span class="language-title">🇬🇧 English Language (SOURCE)</span>
+                <span class="status-badge status-notstarted">ID Gen Pending</span>
+            </div>
+            
+            <div class="alert" style="background: #d1ecf1; border-left-color: #0066cc; margin-bottom: 15px;">
+                <strong>ℹ️ Source Language:</strong> English is the main source. Only requires ID Generation (no AI translation needed).
+            </div>
+
+            <div class="progress-bar-container">
+                <div class="progress-label">
+                    <span>ID Generation</span>
+                    <span>5%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 5%; background: #FFBA07;">Started</div>
+                </div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-item">
+                    <div class="stat-value">464</div>
+                    <div class="stat-label">Total Files</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">28,891</div>
+                    <div class="stat-label">Total Rows</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">3 Repos</div>
+                    <div class="stat-label">GRIB2, BUFR4, CCT</div>
+                </div>
+            </div>
         </div>
 
         <!-- Spanish -->
@@ -270,20 +308,20 @@
             <div class="progress-bar-container">
                 <div class="progress-label">
                     <span>ID Generation</span>
-                    <span>0%</span>
+                    <span>5%</span>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill zero" style="width: 20%;">Not Started</div>
+                    <div class="progress-fill" style="width: 5%; background: #FFBA07;">Started</div>
                 </div>
             </div>
 
             <div class="progress-bar-container">
                 <div class="progress-label">
                     <span>AI Translation</span>
-                    <span>0%</span>
+                    <span>15%</span>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill zero" style="width: 20%;">Not Started</div>
+                    <div class="progress-fill" style="width: 15%; background: #FFBA07;">Started</div>
                 </div>
             </div>
 
@@ -307,43 +345,7 @@
             </div>
         </div>
 
-        <!-- English (Source Language) -->
-        <div class="language-section" style="border-left-color: #0066cc;">
-            <div class="language-header">
-                <span class="language-title">🇬🇧 English Language (SOURCE)</span>
-                <span class="status-badge status-notstarted">ID Gen Pending</span>
-            </div>
-            
-            <div class="alert" style="background: #d1ecf1; border-left-color: #0066cc; margin-bottom: 15px;">
-                <strong>ℹ️ Source Language:</strong> English is the main source. Only requires ID Generation (no AI translation needed).
-            </div>
-
-            <div class="progress-bar-container">
-                <div class="progress-label">
-                    <span>ID Generation</span>
-                    <span>0%</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill zero" style="width: 20%;">Not Started</div>
-                </div>
-            </div>
-
-            <div class="stats-row">
-                <div class="stat-item">
-                    <div class="stat-value">450+</div>
-                    <div class="stat-label">Total Files</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">28,891</div>
-                    <div class="stat-label">Total Rows</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">3 Repos</div>
-                    <div class="stat-label">GRIB2, BUFR4, CCT</div>
-                </div>
-            </div>
-        </div>
-
+    
         <!-- French -->
         <div class="language-section">
             <div class="language-header">
@@ -376,20 +378,20 @@
             <div class="progress-bar-container">
                 <div class="progress-label">
                     <span>ID Generation</span>
-                    <span>0%</span>
+                    <span>5%</span>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill zero" style="width: 20%;">Not Started</div>
+                    <div class="progress-fill" style="width: 5%; background: #FFBA07;">Started</div>
                 </div>
             </div>
 
             <div class="progress-bar-container">
                 <div class="progress-label">
                     <span>AI Translation</span>
-                    <span>0%</span>
+                    <span>15%</span>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill zero" style="width: 20%;">Not Started</div>
+                    <div class="progress-fill" style="width: 15%; background: #FFBA07;">Started</div>
                 </div>
             </div>
 
@@ -423,20 +425,20 @@
             <div class="progress-bar-container">
                 <div class="progress-label">
                     <span>ID Generation</span>
-                    <span>0%</span>
+                    <span>5%</span>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill zero" style="width: 20%;">Not Started</div>
+                    <div class="progress-fill" style="width: 5%; background: #FFBA07;">Started</div>
                 </div>
             </div>
 
             <div class="progress-bar-container">
                 <div class="progress-label">
                     <span>AI Translation</span>
-                    <span>0%</span>
+                    <span>15%</span>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill zero" style="width: 20%;">Not Started</div>
+                    <div class="progress-fill" style="width: 15%; background: #FFBA07;">Started</div>
                 </div>
             </div>
 
@@ -500,21 +502,21 @@
                 </tr>
                 <tr>
                     <td><strong>ID Generation</strong></td>
+                    <td class="cell-started">5%</td>
+                    <td class="cell-started">5%</td>
                     <td class="cell-notstarted">0%</td>
                     <td class="cell-notstarted">0%</td>
-                    <td class="cell-notstarted">0%</td>
-                    <td class="cell-notstarted">0%</td>
-                    <td class="cell-notstarted">0%</td>
-                    <td class="cell-notstarted">0%</td>
+                    <td class="cell-started">5%</td>
+                    <td class="cell-started">5%</td>
                 </tr>
                 <tr>
                     <td><strong>AI Translation</strong></td>
                     <td class="cell-na">Source</td>
+                    <td class="cell-started">15%</td>
                     <td class="cell-notstarted">0%</td>
                     <td class="cell-notstarted">0%</td>
-                    <td class="cell-notstarted">0%</td>
-                    <td class="cell-notstarted">0%</td>
-                    <td class="cell-notstarted">0%</td>
+                    <td class="cell-started">15%</td>
+                    <td class="cell-started">15%</td>
                 </tr>
             </tbody>
         </table>
@@ -538,18 +540,6 @@
             Direct translation from English cannot start until English ID Generation is complete.
         </div>
 
-        <!-- Next Actions -->
-        <h2 style="margin: 30px 0 20px 0; color: #667eea;">✅ Recommended Next Actions</h2>
-        <div class="alert">
-            <ol style="margin-left: 20px; line-height: 1.8;">
-                <li><strong>CRITICAL:</strong> Start ID Generation for English (source language - enables all others)</li>
-                <li><strong>URGENT:</strong> Start ID Generation for Spanish (QC is 100% complete)</li>
-                <li><strong>HIGH:</strong> Investigate and resolve Spanish missing data (6,727 rows, 108 files)</li>
-                <li><strong>MEDIUM:</strong> Begin Extraction phase for French & Russian</li>
-                <li><strong>MEDIUM:</strong> Once English IDs ready, start Chinese & Arabic direct translation</li>
-                <li><strong>LOW:</strong> Test AI Translation pipeline with Spanish (once IDs complete)</li>
-            </ol>
-        </div>
 
         <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #dee2e6; text-align: center; color: #666;">
             <p>Dashboard generated from MOC Translation Status data</p>
