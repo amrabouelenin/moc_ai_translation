@@ -10,6 +10,8 @@ class TranslationRequest(BaseModel):
     use_glossary: bool = Field(default=True, description="Whether to use glossary terms")
     use_memory: bool = Field(default=True, description="Whether to use translation memory")
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional metadata")
+    cached_translation: Optional[str] = Field(None, description="Pre-existing translation to use for better term extraction")
+    memory_search_mode: Optional[str] = Field(None, description="'rag' or 'literal'")
 
 
 class TranslationResponse(BaseModel):

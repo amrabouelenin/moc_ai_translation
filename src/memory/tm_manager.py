@@ -47,27 +47,47 @@ class TranslationMemoryManager:
         conn.close()
     
     def add_entry(self, entry: TranslationMemoryEntry) -> int:
-        """Add a new translation memory entry"""
+        """Add a new translation memory entry or update if exists"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
         metadata_json = json.dumps(entry.metadata) if entry.metadata else None
         
+        # Check if entry already exists
         cursor.execute('''
-            INSERT INTO translation_memory 
-            (source_text, target_text, source_language, target_language, domain, confidence, metadata)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            entry.source_text,
-            entry.target_text,
-            entry.source_language,
-            entry.target_language,
-            entry.domain,
-            entry.confidence,
-            metadata_json
-        ))
+            SELECT id FROM translation_memory
+            WHERE source_text = ? AND target_language = ? AND source_language = ?
+            ORDER BY confidence DESC
+            LIMIT 1
+        ''', (entry.source_text, entry.target_language, entry.source_language))
         
-        entry_id = cursor.lastrowid
+        existing = cursor.fetchone()
+        
+        if existing:
+            # Update existing entry if new confidence is higher
+            entry_id = existing[0]
+            cursor.execute('''
+                UPDATE translation_memory
+                SET target_text = ?, confidence = ?, metadata = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            ''', (entry.target_text, entry.confidence, metadata_json, entry_id))
+        else:
+            # Insert new entry
+            cursor.execute('''
+                INSERT INTO translation_memory 
+                (source_text, target_text, source_language, target_language, domain, confidence, metadata)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                entry.source_text,
+                entry.target_text,
+                entry.source_language,
+                entry.target_language,
+                entry.domain,
+                entry.confidence,
+                metadata_json
+            ))
+            entry_id = cursor.lastrowid
+        
         conn.commit()
         conn.close()
         

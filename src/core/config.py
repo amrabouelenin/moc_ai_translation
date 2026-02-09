@@ -10,6 +10,7 @@ load_dotenv()
 class Settings(BaseSettings):
     # LLM Configuration
     llm_provider: str = Field(default="openai", env="LLM_PROVIDER")
+    llm_backend: str = Field(default="azure", env="LLM_BACKEND")  # Add this line - "azure" or "mcp"
     openai_api_key: Optional[str] = Field(default=None, env="OPENAI_API_KEY")
     anthropic_api_key: Optional[str] = Field(default=None, env="ANTHROPIC_API_KEY")
     azure_openai_api_key: Optional[str] = Field(default=None, env="AZURE_OPENAI_API_KEY")
