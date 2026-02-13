@@ -17,6 +17,9 @@ class CSVFileHandler:
     
     def __init__(self):
         self.supported_languages = ["fr", "es", "ar", "zh", "ru", "pt", "de", "it", "ja"]
+        self.output_csv = Path("glossary.csv")
+        self.glossary_data = []  # List of dicts for CSV rows
+        self.max_terms = 100  # Maximum number of terms to collect
     
     def detect_translatable_columns(self, headers: List[str]) -> List[Tuple[str, str]]:
         """
@@ -161,7 +164,7 @@ class CSVFileHandler:
         target_lang: str
     ) -> Dict[str, Dict[str, str]]:
         """
-        Load existing translation from french/ folder to preserve empty columns.
+        Load existing translation to preserve empty columns and reuse translations.
         
         Args:
             source_path: Source file path
@@ -170,7 +173,15 @@ class CSVFileHandler:
         Returns:
             Dictionary mapping Id -> row data
         """
-        reference_dir = source_path.parent / "french"
+        # Map language codes to directory names
+        lang_dir_map = {
+            'fr': 'french',
+            'es': 'spanish',
+            'ru': 'russian'
+        }
+        
+        lang_dir_name = lang_dir_map.get(target_lang, target_lang)
+        reference_dir = source_path.parent / lang_dir_name
         
         base_name = source_path.stem
         if '_en' in base_name:
@@ -197,7 +208,7 @@ class CSVFileHandler:
         except Exception as e:
             logger.warning(f"Failed to load reference file: {e}")
             return {}
-    
+        
     async def translate_row(
         self,
         row: Dict[str, str],
@@ -230,6 +241,42 @@ class CSVFileHandler:
         # Get reference row if available
         row_id = row.get('Id')
         reference_row = reference_lookup.get(row_id) if reference_lookup and row_id else None
+        
+        # For non-translatable columns, handle based on column type
+        if reference_row:
+            # Columns that should be copied from source (numeric/technical data)
+            preserve_from_source = ['BUFR_Scale', 'BUFR_ReferenceValue', 
+                                    'BUFR_DataWidth_Bits', 'CREX_Scale', 'CREX_DataWidth_Char']
+            
+            # Unit columns that might have translated versions in reference
+            unit_columns = ['BUFR_Unit', 'CREX_Unit']
+            
+            for col in list(translated_row.keys()):
+                # Skip Id and translatable columns (they're handled separately)
+                if col == 'Id' or col.endswith('_en'):
+                    continue
+                
+                # Skip columns that should be preserved from source
+                if col in preserve_from_source:
+                    continue
+                
+                # For unit columns, check if reference has a translated version
+                if col in unit_columns:
+                    ref_translated_col = f"{col}_{target_language}"
+                    ref_value = reference_row.get(ref_translated_col, "")
+                    if ref_value and ref_value.strip():
+                        # Use the translated unit from reference
+                        translated_row[col] = ref_value
+                        logger.debug(f"📋 Using translated unit from reference: {col} = {ref_value}")
+                        continue
+                    # Otherwise, keep the value from source (already copied via row.copy())
+                    continue
+                
+                # For other non-translatable columns (like noteIDs), check reference and use empty if reference is empty
+                ref_value = reference_row.get(col, "")
+                if not ref_value or ref_value.strip() == "":
+                    translated_row[col] = ""
+                    logger.debug(f"⏭️  Clearing {col} for Id={row_id} - empty in reference")
         
         for original_col, base_name in translatable_columns:
             cell_value = row.get(original_col, "").strip()
@@ -298,7 +345,7 @@ class CSVFileHandler:
         # Handle case where all columns were reused from reference
         if row_model_used is None:
             # All columns were reused from reference, no translation was performed
-            translated_by = "Reference Translation (reused)"
+            translated_by = "Original"
         elif "MCP" in row_model_used:
             translated_by = f"AI Translator: {row_model_used}"
         else:

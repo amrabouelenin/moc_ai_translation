@@ -233,6 +233,48 @@ class MCPLLMClient(LLMClient):
             logger.error(f"Error executing tool {tool_name}: {e}")
             return json.dumps({"error": str(e)})
     
+
+    def _validate_translation(self, source_text: str, translation: str) -> bool:
+        """Check if translation looks suspiciously incomplete."""
+        source_words = len(source_text.split())
+        trans_words = len(translation.split())
+        
+        # If source has 3+ words but translation is only 1 word, likely truncated
+        if source_words >= 3 and trans_words == 1:
+            return False
+        
+        # If translation is less than 30% of source word count (for multi-word sources)
+        if source_words >= 4 and trans_words < source_words * 0.3:
+            return False
+        
+        return True
+    
+    async def _retry_translation(self, text: str, bad_translation: str, target_language: str, source_language: str) -> str:
+        """Retry translation with a stricter prompt when validation fails."""
+        logger.warning(f"⚠️  Translation looks incomplete: '{text}' -> '{bad_translation}'. Retrying...")
+        
+        retry_messages = [
+            {
+                "role": "system",
+                "content": f"You are a professional technical translator. Translate from {source_language} to {target_language}. You MUST translate EVERY single word. Do NOT summarize or shorten."
+            },
+            {
+                "role": "user",
+                "content": f"The translation \"{bad_translation}\" is INCOMPLETE for the source text \"{text}\". It is missing important words. Please provide the COMPLETE translation that includes ALL words and qualifiers from the source. Return ONLY the corrected translation."
+            }
+        ]
+        
+        response = await self.client.chat.completions.create(
+            model=self.deployment_name,
+            messages=retry_messages,
+            temperature=0.1,
+            max_tokens=1000
+        )
+        
+        retried = response.choices[0].message.content.strip()
+        logger.info(f"🔄 Retry translation: '{text}' -> '{retried}'")
+        return retried
+
     async def translate(
         self,
         text: str,
@@ -258,7 +300,6 @@ class MCPLLMClient(LLMClient):
             {
                 "role": "system",
                 "content": f"""You are a professional technical translator. Translate from {source_language} to {target_language}.
-
             IMPORTANT INSTRUCTIONS:
             1. Use extract_and_search_glossary to identify technical terms and get their translations
             2. Apply glossary translations exactly as provided
@@ -293,6 +334,11 @@ class MCPLLMClient(LLMClient):
             # If no tool calls, we have the final answer
             if not message.tool_calls:
                 final_translation = message.content.strip()
+                
+                # Validate translation completeness
+                if not self._validate_translation(text, final_translation):
+                    final_translation = await self._retry_translation(text, final_translation, target_language, source_language)
+                
                 return {
                     "translation": final_translation,
                     "tools_used": list(set(self.tools_used)),
@@ -375,6 +421,11 @@ class MCPLLMClient(LLMClient):
         
         # If we hit max iterations, return what we have
         final_translation = response.choices[0].message.content.strip()
+        
+        # Validate translation completeness
+        if not self._validate_translation(text, final_translation):
+            final_translation = await self._retry_translation(text, final_translation, target_language, source_language)
+        
         # Return dict with metadata for MCP
         return {
             "translation": final_translation,

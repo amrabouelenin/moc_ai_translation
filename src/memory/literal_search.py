@@ -63,13 +63,21 @@ class LiteralDictionarySearch:
     
     def _find_translated_file(self, source_file: Path, target_language: str) -> Optional[Path]:
         """Find the corresponding translated file for a source file"""
+        # Map language codes to directory names
+        lang_dir_map = {
+            'fr': 'french',
+            'es': 'spanish',
+            'ru': 'russian'
+        }
+        
         # Check in language subdirectory
-        lang_dir = source_file.parent / 'french' # explicitily
+        lang_dir_name = lang_dir_map.get(target_language, target_language)
+        lang_dir = source_file.parent / lang_dir_name
         translated_name = source_file.name.replace('_en', f'_{target_language}')
         translated_path = lang_dir / translated_name
         
         return translated_path if translated_path.exists() else None
-    
+        
     def _extract_translations(
         self, 
         source_file: Path, 
@@ -93,8 +101,33 @@ class LiteralDictionarySearch:
             # Find column pairs (_en -> _target_lang)
             column_pairs = self._find_column_pairs(source_headers, translated_headers, target_language)
             
-            # Extract translations row by row
-            for row_idx, (source_row, translated_row) in enumerate(zip(source_rows, translated_rows)):
+            # Build a lookup dictionary for translated rows by ID
+            id_column = None
+            if 'Id' in source_headers and 'Id' in translated_headers:
+                id_column = 'Id'
+            elif 'CodeFigure' in source_headers and 'CodeFigure' in translated_headers:
+                id_column = 'CodeFigure'
+            
+            if not id_column:
+                logger.warning(f"⚠️ No ID column ('Id' or 'CodeFigure') found in {source_file.name}, skipping")
+                
+
+            # Create lookup: {id_value: translated_row}
+            translated_lookup = {}
+            for translated_row in translated_rows:
+                row_id = translated_row.get(id_column)
+                if row_id:
+                    translated_lookup[row_id] = translated_row
+
+            # Extract translations by matching IDs
+            for row_idx, source_row in enumerate(source_rows):
+                row_id = source_row.get(id_column)
+                
+                if not row_id or row_id not in translated_lookup:
+                    continue
+                
+                translated_row = translated_lookup[row_id]
+                
                 for source_col, target_col in column_pairs:
                     source_text = source_row.get(source_col, "").strip()
                     target_text = translated_row.get(target_col, "").strip()
@@ -109,6 +142,7 @@ class LiteralDictionarySearch:
                         # Store metadata
                         self.metadata[key] = {
                             'filename': source_file.name,
+                            'row_id': row_id,
                             'row': row_idx + 2,  # +2 for header and 1-indexed
                             'cell': target_col
                         }

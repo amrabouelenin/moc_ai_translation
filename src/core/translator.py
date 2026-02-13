@@ -109,7 +109,9 @@ class TranslationOrchestrator:
                     glossary_used = mcp_result.get("glossary_used", False)
                     memory_used = mcp_result.get("memory_used", False)
                     memory_type = "RAG" if request.memory_search_mode == "rag" else "Literal"
-                    translation_source = f"MCP (active retrieval, {memory_type})"
+                    # translation_source = f"MCP (active retrieval, {memory_type})"
+                    translation_source = f"MCP"
+
                     # if glossary_used:
                     #     translation_source += ", Glossary Used"
                     # if memory_used:
