@@ -1,0 +1,26 @@
+{
+  "es": [
+    "Use 'de' (not 'en') for possessive and attributive relationships between nouns",
+    "When English uses a noun as an adjective modifier, Spanish uses 'de' to connect them: [modified noun] de [modifying noun]",
+    "Organization names with acronyms require 'de' before the acronym for proper attribution",
+    "Preposition 'en' indicates location/position ('in', 'on', 'at'), while 'de' indicates possession, origin, or attribution ('of', 'from', belonging to)",
+    "For compound technical terms, maintain the 'de' structure throughout the chain when multiple nouns modify each other",
+    "Apply phonetic conjunction rules: 'o' becomes 'u' before words starting with 'o' or 'ho' sounds; 'y' becomes 'e' before words starting with 'i' or 'hi' sounds",
+    "Capitalize only the first word in titles unless they are proper nouns"
+  ],
+  "fr": [
+    "Use appropriate French articles (le, la, les, l') before technical terms",
+    "Acronyms remain in uppercase and untranslated",
+    "Use 'de' or 'd'' for possessive constructions with organization names"
+  ],
+  "ar": [
+    "Maintain right-to-left text direction for Arabic script",
+    "Keep Latin acronyms (e.g., NOAA, NASA) in their original form",
+    "Use Arabic definite article 'ال' appropriately with technical terms"
+  ],
+  "ru": [
+    "Use appropriate Russian cases for technical terms",
+    "Keep Latin acronyms in their original form",
+    "Follow Russian capitalization rules for titles"
+  ]
+}
