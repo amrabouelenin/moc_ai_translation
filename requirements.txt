@@ -5,7 +5,7 @@ sqlalchemy==2.0.23
 alembic==1.13.0
 sentence-transformers==2.2.2
 faiss-cpu==1.7.4
-openai==1.3.7
+openai>=1.30.0
 anthropic==0.7.7
 python-dotenv==1.0.0
 aiofiles==23.2.0
@@ -23,3 +23,10 @@ pydantic-settings==2.0.0
 huggingface-hub==0.24.0
 transformers==4.37.2
 tiktoken==0.3.3
+
+# PDF Table Extraction Libraries
+camelot-py[cv]==0.10.1
+tabula-py==2.8.2
+pdfplumber==0.10.3
+PyMuPDF==1.23.14
+openpyxl==3.1.2

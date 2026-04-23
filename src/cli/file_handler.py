@@ -36,8 +36,12 @@ class CSVFileHandler:
             if header.endswith('_en'):
                 base_name = header[:-3]  # Remove '_en' suffix
                 translatable.append((header, base_name))
+            elif header == "CodeFigure":
+                base_name = header
+                translatable.append((header, base_name))
         
         logger.debug(f"📋 Detected {len(translatable)} translatable columns")
+        logger.debug(f"Translatable columns: {translatable}")
         return translatable
     
     def read_csv(self, file_path: Path) -> Tuple[List[str], List[Dict[str, str]]]:
@@ -79,10 +83,11 @@ class CSVFileHandler:
         try:
             # Create output directory if it doesn't exist
             file_path.parent.mkdir(parents=True, exist_ok=True)
-            
             with open(file_path, 'w', encoding='utf-8', newline='') as f:
                 writer = csv.DictWriter(f, fieldnames=headers)
                 writer.writeheader()
+                
+                
                 writer.writerows(rows)
             
             logger.info(f"✅ Written {len(rows)} rows to {file_path.name}")
@@ -125,8 +130,17 @@ class CSVFileHandler:
             language_dir.mkdir(parents=True, exist_ok=True)
             return language_dir / output_filename
         else:
-            # Create language subdirectory in same parent as source
-            language_dir = source_path.parent / target_language
+            # Navigate up through 'english' ancestor, preserving subdirectory structure
+            source_parts = source_path.parent.parts
+            if 'english' in source_parts:
+                idx = list(source_parts).index('english')
+                repo_root = Path(*source_parts[:idx])
+                sub_parts = source_parts[idx + 1:]
+                language_dir = repo_root / target_language
+                if sub_parts:
+                    language_dir = language_dir.joinpath(*sub_parts)
+            else:
+                language_dir = source_path.parent / target_language
             language_dir.mkdir(parents=True, exist_ok=True)
             return language_dir / output_filename
     
@@ -153,8 +167,9 @@ class CSVFileHandler:
             else:
                 new_headers.append(header)
         
-        # Add translated_by column header
-        new_headers.append("translated_by")
+        # Add translation_source column header if it doesn't already exist
+        if "translation_source" not in new_headers:
+            new_headers.append("translation_source")
         
         return new_headers
     
@@ -181,15 +196,31 @@ class CSVFileHandler:
         }
         
         lang_dir_name = lang_dir_map.get(target_lang, target_lang)
-        reference_dir = source_path.parent / lang_dir_name
+        source_parts = source_path.parent.parts
+        if 'english' in source_parts:
+            idx = list(source_parts).index('english')
+            repo_root = Path(*source_parts[:idx])
+            sub_parts = source_parts[idx + 1:]
+            reference_dir = repo_root / lang_dir_name
+            if sub_parts:
+                reference_dir = reference_dir.joinpath(*sub_parts)
+        else:
+            reference_dir = source_path.parent / lang_dir_name
+            if not reference_dir.exists():
+                reference_dir = source_path.parent.parent / lang_dir_name
         
         base_name = source_path.stem
         if '_en' in base_name:
             ref_name = base_name.replace('_en', f'_{target_lang}')
+        elif base_name == "CodeFigure":
+            ref_name = base_name
         else:
             ref_name = f"{base_name}_{target_lang}"
         
         reference_path = reference_dir / f"{ref_name}{source_path.suffix}"
+        
+        logger.info(f"🔍 Looking for reference file at: {reference_path}")
+        logger.info(f"🔍 Reference file exists: {reference_path.exists()}")
         
         if not reference_path.exists():
             logger.debug(f"No reference file found at {reference_path}")
@@ -197,13 +228,15 @@ class CSVFileHandler:
         
         try:
             reference_lookup = {}
-            with open(reference_path, 'r', encoding='utf-8') as f:
+            with open(reference_path, 'r', encoding='utf-8-sig') as f:  # Handle BOM
                 reader = csv.DictReader(f)
+                id_col = next((c for c in (reader.fieldnames or []) if c in ('Id', 'ID', 'id')), None)
                 for row in reader:
-                    row_id = row.get('Id')
+                    row_id = row.get(id_col) if id_col else None
                     if row_id:
                         reference_lookup[row_id] = row
             
+            logger.info(f"✅ Loaded {len(reference_lookup)} reference rows from {reference_path.name}")
             return reference_lookup
         except Exception as e:
             logger.warning(f"Failed to load reference file: {e}")
@@ -237,9 +270,10 @@ class CSVFileHandler:
         # Track glossary usage across the entire row
         row_glossary_matches = 0
         row_model_used = None
+        has_original_translation = False  # Track if any cell came from original reference
         
         # Get reference row if available
-        row_id = row.get('Id')
+        row_id = row.get('Id') or row.get('ID') or row.get('id')
         reference_row = reference_lookup.get(row_id) if reference_lookup and row_id else None
         
         # For non-translatable columns, handle based on column type
@@ -262,25 +296,71 @@ class CSVFileHandler:
                 
                 # For unit columns, check if reference has a translated version
                 if col in unit_columns:
+                    # Reference file has columns like BUFR_Unit_fr, CREX_Unit_fr
                     ref_translated_col = f"{col}_{target_language}"
                     ref_value = reference_row.get(ref_translated_col, "")
                     if ref_value and ref_value.strip():
                         # Use the translated unit from reference
                         translated_row[col] = ref_value
+                        has_original_translation = True  # Mark that we used reference data
                         logger.debug(f"📋 Using translated unit from reference: {col} = {ref_value}")
                         continue
-                    # Otherwise, keep the value from source (already copied via row.copy())
-                    continue
+                    # No reference value - translate the unit column
+                    else:
+                        unit_value = translated_row.get(col, "").strip()
+                        if unit_value:
+                            # Translate the unit value
+                            from ..api.models import TranslationRequest
+                            request = TranslationRequest(
+                                text=unit_value,
+                                source_language="en",
+                                target_language=target_language,
+                                use_glossary=True,
+                                use_memory=True,
+                                memory_search_mode=memory_mode,
+                                cached_translation=None,
+                                metadata={}
+                            )
+                            response = await translator.translate(request)
+                            translated_row[col] = response.translation
+                            row_model_used = response.model_used
+                            logger.debug(f"🔤 Translated unit column {col}: '{unit_value}' -> '{response.translation}'")
+                        continue
                 
                 # For other non-translatable columns (like noteIDs), check reference and use empty if reference is empty
                 ref_value = reference_row.get(col, "")
                 if not ref_value or ref_value.strip() == "":
                     translated_row[col] = ""
                     logger.debug(f"⏭️  Clearing {col} for Id={row_id} - empty in reference")
+        else:
+            # No reference row - translate unit columns if they exist
+            unit_columns = ['BUFR_Unit', 'CREX_Unit']
+            for col in unit_columns:
+                if col in translated_row:
+                    unit_value = translated_row.get(col, "").strip()
+                    if unit_value:
+                        # Translate the unit value
+                        from ..api.models import TranslationRequest
+                        request = TranslationRequest(
+                            text=unit_value,
+                            source_language="en",
+                            target_language=target_language,
+                            use_glossary=True,
+                            use_memory=True,
+                            memory_search_mode=memory_mode,
+                            cached_translation=None,
+                            metadata={}
+                        )
+                        response = await translator.translate(request)
+                        translated_row[col] = response.translation
+                        row_model_used = response.model_used
+                        logger.debug(f"🔤 Translated unit column {col}: '{unit_value}' -> '{response.translation}'")
         
         for original_col, base_name in translatable_columns:
             cell_value = row.get(original_col, "").strip()
             new_col_name = f"{base_name}_{target_language}"
+            if base_name == "CodeFigure":
+                new_col_name = f"{base_name}"
             
             # Check if this column should be skipped based on reference
             if reference_row:
@@ -290,9 +370,11 @@ class CSVFileHandler:
                     logger.debug(f"⏭️  Skipping {new_col_name} for Id={row_id} - empty in reference")
                     continue
                 else:
-                    # Has value in reference - reuse it
-                    translated_row[new_col_name] = ref_value
-                    logger.debug(f"♻️  Reusing {new_col_name} for Id={row_id} - from reference")
+                    # Has value in reference - reuse it with cleaning
+                    cleaned_ref_value = self._clean_reference_text(ref_value)
+                    translated_row[new_col_name] = cleaned_ref_value
+                    has_original_translation = True  # Mark that we reused from reference
+                    logger.debug(f"♻️  Reusing {new_col_name} for Id={row_id} - from reference (cleaned)")
                     continue
             
             # Skip empty cells
@@ -309,10 +391,27 @@ class CSVFileHandler:
             for col_name, value in translated_row.items():
                 # Look for columns that already contain translations to the target language
                 # e.g. if we're translating to 'fr', look for columns ending with '_fr'
-                if col_name.endswith(f"_{target_language}") and value:
+                if (col_name.endswith(f"_{target_language}") or col_name == 'CodeFigure') and value:
+                    logger.debug(f"Using cached translation for {col_name}: {value}")
                     cached_translation = value
                     break
             
+            # Detect and preserve formatting wrappers (parentheses, brackets, etc.)
+            wrapper_start = ""
+            wrapper_end = ""
+            
+            if cell_value.startswith("(") and cell_value.endswith(")"):
+                wrapper_start = "("
+                wrapper_end = ")"
+                cell_value = cell_value[1:-1].strip()
+            elif cell_value.startswith("[") and cell_value.endswith("]"):
+                wrapper_start = "["
+                wrapper_end = "]"
+                cell_value = cell_value[1:-1].strip()
+            elif cell_value.startswith("{") and cell_value.endswith("}"):
+                wrapper_start = "{"
+                wrapper_end = "}"
+                cell_value = cell_value[1:-1].strip()
             # Create translation request
             request = TranslationRequest(
                 text=cell_value,
@@ -329,9 +428,16 @@ class CSVFileHandler:
             response = await translator.translate(request)
             row_model_used = response.model_used  # Track the model used
 
+
+            # Re-apply wrapper if it was detected
+            final_translation = response.translation
+            if wrapper_start and wrapper_end:
+                final_translation = f"{wrapper_start}{response.translation}{wrapper_end}"
+            
             # Store in new column
             new_col_name = f"{base_name}_{target_language}"
-            translated_row[new_col_name] = response.translation
+            translated_row[new_col_name] = final_translation  # Use final_translation instead of response.translation
+
             
             # Accumulate glossary matches for the entire row
             if response.glossary_matches:
@@ -339,32 +445,33 @@ class CSVFileHandler:
             
             logger.debug(f"✅ '{cell_value}' -> '{response.translation}'")
     
-        # After processing all cells, set the translated_by field
-        # For MCP, the model_used already contains full metadata, so use it as-is
-        # After processing all cells, set the translated_by field
-        # Handle case where all columns were reused from reference
-        if row_model_used is None:
-            # All columns were reused from reference, no translation was performed
-            translated_by = "Original"
-        elif "MCP" in row_model_used:
-            translated_by = f"AI Translator: {row_model_used}"
+        # After processing all cells, set the translation_source field
+        # has_original_translation = True means we copied data from reference file
+        # row_model_used = "Original" means literal dictionary match (via MCP)
+        # row_model_used = "MCP" means AI translation via MCP
+        if has_original_translation:
+            # Data was copied from reference file
+            translation_source = "Original"
+        elif row_model_used in ["Original", "MCP"]:
+            # MCP backend: either literal dictionary match or AI translation
+            translation_source = "AI Engine"
         else:
-            # For standard Azure backend, add glossary tracking
-            translated_by = f"AI Translator: {row_model_used}"
+            # Azure backend: add glossary tracking
+            translation_source = f"AI Translator: {row_model_used}" if row_model_used else "AI Translator"
             if row_glossary_matches > 0:
-                translated_by += f", Glossary Used ({row_glossary_matches} terms)"
+                translation_source += f", Glossary Used ({row_glossary_matches} terms)"
             else:
-                translated_by += ", Glossary Not Used"
+                translation_source += ", Glossary Not Used"
         
-        translated_row["translated_by"] = translated_by
-        
-        # logger.debug(f"✅ '{cell_value}' -> '{response.translation}' ({translated_by})")
+        translated_row["translation_source"] = translation_source
         
         # Remove original _en columns
         for original_col, _ in translatable_columns:
+            if original_col == "CodeFigure":
+                continue
             if original_col in translated_row:
                 del translated_row[original_col]
-        
+
         return translated_row
     
     async def translate_csv(
@@ -451,6 +558,15 @@ class CSVFileHandler:
             # Generate output path
             output_path = self.generate_output_path(source_path, target_lang, output_dir)
             
+            # Rename column CodeFigure_es or CodeFigure_fr or CodeFigure_ru to CodeFigure
+            for row in translated_rows:
+                # Find any CodeFigure_* key and rename it to CodeFigure
+                keys_to_rename = [k for k in row.keys() if k.startswith('CodeFigure_')]
+                for old_key in keys_to_rename:
+                    row['CodeFigure'] = row.pop(old_key)
+            
+            # Also update the headers list
+            new_headers = [h if not h.startswith('CodeFigure_') else 'CodeFigure' for h in new_headers]
             # Write translated file
             self.write_csv(output_path, new_headers, translated_rows)
             
@@ -458,3 +574,34 @@ class CSVFileHandler:
             logger.info(f"✅ Translation to {target_lang.upper()} completed: {output_path}")
         
         return output_files
+    
+    def _clean_reference_text(self, text: str) -> str:
+        """
+        Clean up reference text to remove obvious formatting issues.
+        This includes removing double parentheses, extra commas, etc.
+        
+        Args:
+            text: Reference text to clean
+            
+        Returns:
+            Cleaned reference text
+        """
+        if not text:
+            return text
+            
+        cleaned = text
+        
+        # Remove double parentheses like ((text)) -> (text)
+        cleaned = cleaned.replace('(((', '((').replace(')))', '))')
+        cleaned = cleaned.replace('((', '(').replace('))', ')')
+        
+        # Fix double commas like ,, -> ,
+        cleaned = cleaned.replace(',,', ',')
+        
+        # Remove trailing commas
+        cleaned = cleaned.rstrip(',')
+        
+        # Remove multiple spaces
+        cleaned = ' '.join(cleaned.split())
+        
+        return cleaned

@@ -83,16 +83,19 @@ class TranslationCLI:
         """
         start_time = time.time()
         
-        # Build literal dictionary ONCE before translating file
+        # Build global literal dictionary ONCE before translating file
         if memory_mode == "literal":
-            source_dir = source_path.parent
             for target_lang in target_languages:
-                logger.info(f"📖 Building literal dictionary for {target_lang}...")
+                logger.info(f"📖 Building global literal dictionary for {target_lang}...")
                 count = self.translator.literal_search.build_from_csv_files(
-                    source_dir=source_dir,
-                    target_language=target_lang
+                    source_dir=source_path.parent,
+                    target_language=target_lang,
+                    source_language="en"
                 )
-                logger.info(f"✅ Dictionary ready: {count} entries")
+                logger.info(f"✅ Global dictionary ready: {count} unique entries")
+
+            # Set the current source file for lookup context (fallback)
+            self.translator.literal_search.set_current_source_file(source_path)
         
         logger.info(f"📄 Source: {source_path} | Target: {', '.join(target_languages)} | Batch: {batch_size}")
         
@@ -121,7 +124,7 @@ class TranslationCLI:
         target_languages: List[str],
         output_dir: Optional[Path] = None,
         batch_size: int = 5,
-        pattern: str = "*_en_*.csv",
+        pattern: str = "*_en*.csv",
         force: bool = False,
         memory_mode: str = "rag"  # ADD THIS
     ):
@@ -248,8 +251,8 @@ Examples:
     parser.add_argument(
         '--pattern',
         type=str,
-        default='*_en_*.csv',
-        help='File pattern for directory mode (default: *_en_*.csv)'
+        default='*_en*.csv',
+        help='File pattern for directory mode (default: *_en*.csv)'
     )
     parser.add_argument(
         '--force',

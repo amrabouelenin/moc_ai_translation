@@ -96,6 +96,33 @@ class MCPLLMClient(LLMClient):
                     }
                 }
             })
+            # Add global dictionary tool for literal mode
+            tools.append({
+                "type": "function",
+                "function": {
+                    "name": "search_global_dictionary",
+                    "description": "Search for exact translation matches in the global dictionary built from all files. Use this for comprehensive exact phrase matching across all translated content.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "text": {
+                                "type": "string",
+                                "description": "The exact text to search for"
+                            },
+                            "target_language": {
+                                "type": "string",
+                                "description": "Target language code (e.g., 'fr', 'es', 'ar')"
+                            },
+                            "source_language": {
+                                "type": "string",
+                                "description": "Source language code (default: 'en')",
+                                "default": "en"
+                            }
+                        },
+                        "required": ["text", "target_language"]
+                    }
+                }
+            })
         else:  # rag mode
             tools.append({
                 "type": "function",
@@ -132,6 +159,10 @@ class MCPLLMClient(LLMClient):
                     if self.current_iteration_results["search_literal_dictionary"].get("found", False):
                         return json.dumps({"found": False, "message": "Skipping glossary - literal dictionary found match"})
                 
+                if "search_global_dictionary" in self.current_iteration_results:
+                    if self.current_iteration_results["search_global_dictionary"].get("found", False):
+                        return json.dumps({"found": False, "message": "Skipping glossary - global dictionary found match"})
+                
                 if "search_translation_memory" in self.current_iteration_results:
                     mem_result = self.current_iteration_results["search_translation_memory"]
                     if mem_result.get("found", False):
@@ -160,7 +191,7 @@ class MCPLLMClient(LLMClient):
                 for term_obj in extracted_terms:
                     term = term_obj.get("term")
                     if term:
-                        matches = [e for e in all_entries if term.lower() in e.term.lower() or e.term.lower() in term.lower()]
+                        matches = [e for e in all_entries if e.term.lower() == term.lower()]
                         if matches:
                             glossary_results.append({
                                 "term": term,
@@ -200,6 +231,28 @@ class MCPLLMClient(LLMClient):
                     })
                 else:
                     return json.dumps({"found": False, "message": "No exact match found"})
+            
+            elif tool_name == "search_global_dictionary":
+                text = arguments["text"]
+                target_lang = arguments["target_language"]
+                source_lang = arguments.get("source_language", "en")
+                    
+                # Search global literal dictionary
+                result = self.literal_search.search_global_literal(text, target_lang, source_lang)
+                    
+                if result.matches:
+                    match = result.matches[0]
+                    self.memory_has_match = True  # Mark that we found a match
+                    occurrence_count = match.metadata.get('occurrence_count', 0)
+                    return json.dumps({
+                        "found": True,
+                        "translation": match.target_text,
+                        "confidence": match.confidence,
+                        "occurrence_count": occurrence_count,
+                        "message": f"Global dictionary match found (used {occurrence_count} times)"
+                    })
+                else:
+                    return json.dumps({"found": False, "message": "No exact match found in global dictionary"})
             
             elif tool_name == "search_translation_memory":
                 text = arguments["text"]
@@ -248,7 +301,30 @@ class MCPLLMClient(LLMClient):
             return False
         
         return True
-    
+    def _load_grammar_rules(self, target_language: str) -> str:
+        """Load language-specific grammar rules from config file"""
+        import json
+        from pathlib import Path
+        
+        config_file = Path(__file__).parent.parent.parent / "config" / "grammar_rules.json"
+        
+        if not config_file.exists():
+            return ""
+        
+        try:
+            with open(config_file, 'r', encoding='utf-8') as f:
+                all_rules = json.load(f)
+            
+            rules = all_rules.get(target_language, [])
+            
+            if rules:
+                formatted_rules = "\n\nLANGUAGE-SPECIFIC GRAMMAR RULES:\n" + "\n".join(f"- {rule}" for rule in rules)
+                return formatted_rules
+            
+        except Exception as e:
+            logger.warning(f"Failed to load grammar rules: {e}")
+        
+        return ""
     async def _retry_translation(self, text: str, bad_translation: str, target_language: str, source_language: str) -> str:
         """Retry translation with a stricter prompt when validation fails."""
         logger.warning(f"⚠️  Translation looks incomplete: '{text}' -> '{bad_translation}'. Retrying...")
@@ -291,10 +367,12 @@ class MCPLLMClient(LLMClient):
 
         # Build memory instruction based on mode
         if self.memory_mode == "literal":
-            memory_instruction = "3. Use search_literal_dictionary to check for exact phrase matches FIRST"
+            memory_instruction = "3. Use search_literal_dictionary to check for exact phrase matches FIRST, then use search_global_dictionary for comprehensive matching across all files"
         else:
             memory_instruction = "3. Use search_translation_memory to find similar previously translated content for context"
         
+        # Load language-specific grammar rules
+        grammar_rules = self._load_grammar_rules(target_language)
         
         messages = [
             {
@@ -304,9 +382,8 @@ class MCPLLMClient(LLMClient):
             1. Use extract_and_search_glossary to identify technical terms and get their translations
             2. Apply glossary translations exactly as provided
             {memory_instruction}
-            3. Return ONLY the translated text without explanations
-            4. Maintain technical accuracy and consistency"""
-            
+            4. Return ONLY the translated text without explanations
+            5. Maintain technical accuracy and consistency{grammar_rules}"""
             },
             {
                 "role": "user",
@@ -343,7 +420,7 @@ class MCPLLMClient(LLMClient):
                     "translation": final_translation,
                     "tools_used": list(set(self.tools_used)),
                     "glossary_used": "extract_and_search_glossary" in self.tools_used,
-                    "memory_used": any(t in self.tools_used for t in ["search_literal_dictionary", "search_translation_memory"])
+                    "memory_used": any(t in self.tools_used for t in ["search_literal_dictionary", "search_global_dictionary", "search_translation_memory"])
                 }
             
             # Add assistant message to conversation
@@ -379,6 +456,10 @@ class MCPLLMClient(LLMClient):
                     
                     if "search_literal_dictionary" in self.current_iteration_results:
                         if self.current_iteration_results["search_literal_dictionary"].get("found", False):
+                            should_skip = True
+                    
+                    if "search_global_dictionary" in self.current_iteration_results:
+                        if self.current_iteration_results["search_global_dictionary"].get("found", False):
                             should_skip = True
                             
                     if "search_translation_memory" in self.current_iteration_results:
@@ -431,7 +512,7 @@ class MCPLLMClient(LLMClient):
             "translation": final_translation,
             "tools_used": list(set(self.tools_used)),
             "glossary_used": "extract_and_search_glossary" in self.tools_used,
-            "memory_used": any(t in self.tools_used for t in ["search_literal_dictionary", "search_translation_memory"])
+            "memory_used": any(t in self.tools_used for t in ["search_literal_dictionary", "search_global_dictionary", "search_translation_memory"])
         }
     
     async def extract_terms(
